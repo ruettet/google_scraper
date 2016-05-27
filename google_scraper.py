@@ -4,12 +4,14 @@ from re import sub
 from sys import argv
 from nltk.util import ngrams
 from time import sleep
+from random import choice, randint
 
 
 class GoogleScraper():
-  def __init__(self, search_ngram, sleep_length=10, next_word="Volgende"):
-    first_page_url = "https://www.google.nl/search?q=" + '"' + search_ngram.replace(" ", "+") + '"'
-    self.sleep_length = float(sleep_length)
+  def __init__(self, search_ngram, min_sleep_length=30, max_sleep_length=60, domain=".nl", next_word="Volgende"):
+    first_page_url = "https://www.google" + domain + "/search?q=" + '"' + search_ngram.replace(" ", "+") + '"'
+    self.min_sleep_length = float(min_sleep_length)
+    self.max_sleep_length = float(max_sleep_length)
     self.next_word = next_word
     self.list_of_urls = []
     self.get_urls(first_page_url)
@@ -22,8 +24,9 @@ class GoogleScraper():
       self.list_of_urls.extend(urls)
 
   def get_info_from_page(self, url):
-    sleep(self.sleep_length)
-    soup = BeautifulSoup(get(url, headers={'User-agent': 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36'}).text, "lxml")
+    sleep(randint(self.min_sleep_length, self.max_sleep_length))
+    user_agents = ['Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36']
+    soup = BeautifulSoup(get(url, headers={'User-agent': choice(user_agents)}).text, "lxml")
     return self.get_next_page_url(soup), self.get_search_hit_urls(soup)
 
   def get_next_page_url(self, soup):
@@ -39,18 +42,19 @@ class GoogleScraper():
 
 
 if __name__ == "__main__":
-  '$ python google_scraper.py test.txt 10 Volgende test_out.csv'
+  '$ python3 google_scraper.py test.txt 30 60 .nl Volgende test_out.csv'
   urls = {}
   with open(argv[1], "r") as f:
     for ngram in ngrams(f.read().split(), 5):
       search_term = " ".join(ngram)
       print(search_term)
-      gs = GoogleScraper(search_term, argv[2], argv[3])
+      gs = GoogleScraper(search_term, argv[2], argv[3], argv[4], argv[5])
       urls[search_term] = gs.list_of_urls
   out = []
   for ngram in urls:
     print(ngram, urls[ngram])
     for url in urls[ngram]:
-      out.append(",".join([ngram, url.lstrip("http://").split("/")[0], url]))
-  with open(argv[4], "w") as f:
+      out.append(",".join([ngram, sub("https?://[w]{0,3}\.?", "", url).split("/")[0], url]))
+  with open(argv[6], "w") as f:
     f.write("\n".join(out))
+
