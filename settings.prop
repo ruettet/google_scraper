@@ -1,0 +1,15 @@
+[InputOutput]
+infile=test.txt
+outfile=test_out.csv
+
+[Ngram]
+n=5
+
+[Timing]
+minsleep=30
+maxsleep=60 
+
+[Google]
+extension=.nl
+nextword=Volgende
+stopsearchafterpages=5

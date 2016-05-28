@@ -5,28 +5,36 @@ from sys import argv
 from nltk.util import ngrams
 from time import sleep
 from random import choice, randint
+from configparser import ConfigParser
 
 
 class GoogleScraper():
-  def __init__(self, search_ngram, min_sleep_length=30, max_sleep_length=60, domain=".nl", next_word="Volgende"):
+  def __init__(self, search_ngram, min_sleep_length=30, max_sleep_length=60, domain=".nl", next_word="Volgende", stop=1):
     first_page_url = "https://www.google" + domain + "/search?q=" + '"' + search_ngram.replace(" ", "+") + '"'
+    with open("useragents.prop") as f:
+      self.user_agents = f.readlines()
     self.min_sleep_length = float(min_sleep_length)
     self.max_sleep_length = float(max_sleep_length)
+    self.stop_searching_after_page = stop
     self.next_word = next_word
     self.list_of_urls = []
     self.get_urls(first_page_url)
 
   def get_urls(self, first_page_url):
+    page_count = 1
+    print("\tChecking search page", page_count)
     next_page_url, urls = self.get_info_from_page(first_page_url)
     self.list_of_urls.extend(urls)
-    while next_page_url:
+    page_count += 1
+    while next_page_url and page_count < self.stop_searching_after_page:
+      print("\tChecking search page", page_count)
       next_page_url, urls = self.get_info_from_page(next_page_url)
       self.list_of_urls.extend(urls)
+      page_count += 1
 
   def get_info_from_page(self, url):
     sleep(randint(self.min_sleep_length, self.max_sleep_length))
-    user_agents = ['Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36']
-    soup = BeautifulSoup(get(url, headers={'User-agent': choice(user_agents)}).text, "lxml")
+    soup = BeautifulSoup(get(url, headers={'User-agent': choice(self.user_agents).strip()}).text, "lxml")
     return self.get_next_page_url(soup), self.get_search_hit_urls(soup)
 
   def get_next_page_url(self, soup):
@@ -42,19 +50,25 @@ class GoogleScraper():
 
 
 if __name__ == "__main__":
-  '$ python3 google_scraper.py test.txt 30 60 .nl Volgende test_out.csv'
+  '$ python3 google_scraper.py settings.prop'
+  config = ConfigParser()
+  config.read("settings.prop")
   urls = {}
-  with open(argv[1], "r") as f:
-    for ngram in ngrams(f.read().split(), 5):
-      search_term = " ".join(ngram)
-      print(search_term)
-      gs = GoogleScraper(search_term, argv[2], argv[3], argv[4], argv[5])
-      urls[search_term] = gs.list_of_urls
+  with open(config.get("InputOutput", "infile"), "r") as f:
+    for line in f.readlines():
+      for ngram in ngrams(line.strip().split(), int(config.get("Ngram", "n"))):
+        search_term = " ".join(ngram)
+        print(search_term)
+        gs = GoogleScraper(search_term, 
+                           config.get("Timing", "minsleep"), 
+                           config.get("Timing", "maxsleep"), 
+                           config.get("Google", "extension"),
+                           config.get("Google", "nextword"))
+        urls[search_term] = gs.list_of_urls
   out = []
   for ngram in urls:
-    print(ngram, urls[ngram])
     for url in urls[ngram]:
       out.append(",".join([ngram, sub("https?://[w]{0,3}\.?", "", url).split("/")[0], url]))
-  with open(argv[6], "w") as f:
+  with open(config.get("InputOutput", "outfile"), "w") as f:
     f.write("\n".join(out))
 
