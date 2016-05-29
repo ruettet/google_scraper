@@ -10,6 +10,7 @@ from configparser import ConfigParser
 
 class GoogleScraper():
   def __init__(self, search_ngram, min_sleep_length=30, max_sleep_length=60, domain=".nl", next_word="Volgende", stop=1, noresults="Geen resultaten gevonden"):
+    first_page_url = "https://www.google" + domain + "/search?num=100&q=" + '"' + search_ngram.replace(" ", "+") + '"'
     with open("useragents.prop") as f:
       self.user_agents = f.readlines()
     self.min_sleep_length = float(min_sleep_length)
