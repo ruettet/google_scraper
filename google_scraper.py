@@ -9,13 +9,13 @@ from configparser import ConfigParser
 
 
 class GoogleScraper():
-  def __init__(self, search_ngram, min_sleep_length=30, max_sleep_length=60, domain=".nl", next_word="Volgende", stop=1):
-    first_page_url = "https://www.google" + domain + "/search?q=" + '"' + search_ngram.replace(" ", "+") + '"'
+  def __init__(self, search_ngram, min_sleep_length=30, max_sleep_length=60, domain=".nl", next_word="Volgende", stop=1, noresults="Geen resultaten gevonden"):
     with open("useragents.prop") as f:
       self.user_agents = f.readlines()
     self.min_sleep_length = float(min_sleep_length)
     self.max_sleep_length = float(max_sleep_length)
     self.stop_searching_after_page = stop
+    self.noresultssentence = noresults
     self.next_word = next_word
     self.list_of_urls = []
     self.get_urls(first_page_url)
@@ -35,6 +35,10 @@ class GoogleScraper():
   def get_info_from_page(self, url):
     sleep(randint(self.min_sleep_length, self.max_sleep_length))
     soup = BeautifulSoup(get(url, headers={'User-agent': choice(self.user_agents).strip()}).text, "lxml")
+    for div in soup.findAll("div", {"class": "med"}):
+      if self.noresultssentence in (div.text):
+        print("\t\tNo exact matches found")
+        return None, []
     return self.get_next_page_url(soup), self.get_search_hit_urls(soup)
 
   def get_next_page_url(self, soup):
@@ -63,7 +67,8 @@ if __name__ == "__main__":
                            config.get("Timing", "minsleep"), 
                            config.get("Timing", "maxsleep"), 
                            config.get("Google", "extension"),
-                           config.get("Google", "nextword"))
+                           config.get("Google", "nextword"),
+                           config.get("Google", "noresultssentence"))
         urls[search_term] = gs.list_of_urls
   out = []
   for ngram in urls:
