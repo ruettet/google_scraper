@@ -11,6 +11,6 @@ maxsleep=60
 
 [Google]
 extension=.nl
-nextword=Volgende
-noresultssentence=Geen resultaten gevonden voor
-stopsearchafterpages=5
+nextword=Next
+noresultssentence=No results for
+stopsearchafterpages=20
