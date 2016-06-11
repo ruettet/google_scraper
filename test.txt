@@ -1,1 +1,11 @@
-investigations into the formation and
+Thanks. 
+I ran the tool on a sentence of mine and it worked well. 
+Found a bunch of URLs. 
+Showed that I'm a academic I guess. 
+Didn't look at it in more detail. 
+But the I ran it again with a list of short phrases and it didn't work. 
+It went through the motions but never found more than one page of results and then the output file was empty. 
+Anyway I'm not sure if Google blocked me or something else.
+At least some return some hits if done manually. 
+Maybe it's how I formatted the test file? 
+As a series of strings separated by new lines?

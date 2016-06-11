@@ -13,4 +13,4 @@ maxsleep=60
 extension=.nl
 nextword=Next
 noresultssentence=No results for
-stopsearchafterpages=20
+stopsearchafterpages=3

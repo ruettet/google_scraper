@@ -28,7 +28,7 @@ class GoogleScraper():
     next_page_url, urls = self.get_info_from_page(first_page_url)
     self.list_of_urls.extend(urls)
     page_count += 1
-    while next_page_url and page_count < self.stop_searching_after_page:
+    while next_page_url and page_count <= self.stop_searching_after_page:
       print("\tChecking search page", page_count)
       next_page_url, urls = self.get_info_from_page(next_page_url)
       self.list_of_urls.extend(urls)
